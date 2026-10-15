@@ -1,0 +1,73 @@
+
+import path from 'node:path'
+
+import fs from 'node:fs'
+import { execSync } from 'node:child_process'
+
+startTime = performance.now()
+
+if process.argv.length < 4
+  console.log "Please provide a project name and an app name."
+  console.log "For example: kenai myproject app"
+  process.exit 1
+
+projectName = process.argv[2]
+appName = process.argv[3]
+
+# either argue 'loudly' to print or 'silently' to not print.
+# You can also just omit this argument to run it silently.
+if process.argv.length >= 5
+  toPrintOrNotToPrint = process.argv[4]
+
+rootName = projectName + "_root"
+
+maybePrint = (message)->
+  if toPrintOrNotToPrint == "loudly"
+    console.log message
+
+# XprojectName_root/
+#    Xmanage.py
+#    xprojectName/
+#        Xsettings.py
+#        Xurls.py
+#    appName/
+#        views.py
+#        urls.py
+#        templates/
+#            appName/
+#                index.html
+
+execSync "django-admin startproject #{projectName} #{rootName}"
+maybePrint "Finished Django scaffolding; beginning Kenai's scaffolding."
+
+appDir = path.join rootName, appName
+
+fs.mkdirSync appDir
+maybePrint "Created #{appDir} directory."
+
+fs.writeFileSync path.join(appDir, "views.py"), ""
+maybePrint "Created #{appDir}/views.py"
+
+fs.writeFileSync path.join(appDir, "urls.py"), ""
+maybePrint "Created #{appDir}/urls.py"
+
+templatesDir = path.join appDir, "templates"
+
+fs.mkdirSync templatesDir
+maybePrint "Created #{templatesDir} directory."
+
+fs.mkdirSync path.join(templatesDir, appName)
+maybePrint "Created #{path.join(templatesDir, appName)} directory."
+
+fs.writeFileSync path.join(templatesDir, appName, "index.html"), ""
+maybePrint "Created #{path.join(templatesDir, appName, "index.html")}"
+
+green = (string) -> "\x1b[32m#{string}\x1b[0m"
+
+endTime = performance.now()
+
+durationInSeconds = ((endTime - startTime) / 1000).toFixed(2)
+
+console.log "\n\n\n" if toPrintOrNotToPrint == "loudly" # get some blank space for the conclusion message
+console.log "This app was scaffolded in #{durationInSeconds} seconds."
+console.log green("Done! Cheers, broseph.")
